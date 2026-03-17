@@ -27,15 +27,6 @@ Juego interactivo de búsqueda del tesoro para el equipo de Chipax (35 personas,
 | 11 | Adonai: CodeWars, frituras y road trips | Equipo actual |
 | 12 | Maripi: hobbies de abuela (acuarelas, tejer, cerámica) | Equipo actual |
 
-## 🏗️ Cómo publicar en GitHub Pages
-
-1. Crea un repo nuevo en GitHub llamado `chipax-treasure-hunt`
-2. Sube los archivos `index.html` y `README.md`
-3. Ve a **Settings → Pages**
-4. En "Source" selecciona **Deploy from a branch**
-5. Selecciona **main** y **/ (root)**
-6. Haz clic en **Save**
-7. En ~1 minuto tu juego estará en: `https://TU-USUARIO.github.io/chipax-treasure-hunt/`
 
 ## 🎯 Mecánica
 

@@ -45,5 +45,5 @@ Juego interactivo de búsqueda del tesoro para el equipo de Chipax (35 personas,
 
 ---
 
-## 🚀 Link del juego en cloude con contador de puntos: https://claude.ai/public/artifacts/dd43f267-fb5b-4ddb-8fb2-a51efdb1c4e4
+## 🚀 Link del juego en claude con contador de puntos: https://claude.ai/public/artifacts/dd43f267-fb5b-4ddb-8fb2-a51efdb1c4e4
 Para esto deberán tener todos sesión iniciada en cloude. 

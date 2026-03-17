@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chipax Treasure Hunt — Parte 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;700&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080e1a;color:#fff;font-family:'Source Sans Pro',sans-serif;min-height:100vh}
+.hide{display:none!important}
+@keyframes twinkle{0%{opacity:.2}100%{opacity:.8}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 10px rgba(255,200,50,0.2)}50%{box-shadow:0 0 25px rgba(255,200,50,0.5)}}
+.star{position:absolute;border-radius:50%;background:rgba(255,200,50,0.4);animation:twinkle 2s ease-in-out infinite alternate}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1}
+.mono{font-family:'JetBrains Mono',monospace}
+.serif{font-family:'Playfair Display',Georgia,serif}
+.gold{color:#FFC832}
+.card{background:linear-gradient(145deg,rgba(15,23,42,.95),rgba(30,41,59,.95));border-radius:16px;border:1px solid rgba(255,200,50,.12);padding:24px 20px}
+.map-box{position:relative;width:100%;padding-bottom:56.25%;background:linear-gradient(135deg,#0a1628,#1a2744 40%,#0d2137);border-radius:16px;overflow:hidden;border:1px solid rgba(255,200,50,.15);box-shadow:0 0 40px rgba(255,200,50,.05),inset 0 0 60px rgba(0,0,0,.3)}
+.map-box>*{position:absolute}
+.marker{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;transition:all .4s cubic-bezier(.34,1.56,.64,1);transform:translate(-50%,-50%);border:2px solid rgba(100,116,139,.4);background:rgba(15,23,42,.8);cursor:default;outline:none}
+.marker.on{border-color:#FFC832;background:radial-gradient(circle,rgba(255,200,50,.3),rgba(255,200,50,.05));box-shadow:0 0 20px rgba(255,200,50,.3);cursor:pointer}
+.marker.next{border-color:rgba(255,200,50,.6);background:radial-gradient(circle,rgba(255,200,50,.15),rgba(0,0,0,.3));animation:pulseGlow 2s ease-in-out infinite;cursor:pointer}
+.marker.cur{transform:translate(-50%,-50%) scale(1.25);z-index:10}
+.mlabel{position:absolute;transform:translateX(-50%);font-size:9px;font-family:'JetBrains Mono',monospace;text-align:center;white-space:nowrap}
+.opt{padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.8);font-size:13px;cursor:pointer;text-align:left;transition:all .25s;display:flex;align-items:center;gap:10px;width:100%;outline:none;font-family:'Source Sans Pro',sans-serif}
+.opt:hover:not(.done){border-color:rgba(255,200,50,.3);background:rgba(255,200,50,.05)}
+.opt.sel{background:rgba(255,200,50,.1);border-color:rgba(255,200,50,.5);color:#FFC832}
+.opt.ok{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.5);color:#22c55e}
+.opt.no{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#ef4444}
+.cir{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.sel .cir{background:rgba(255,200,50,.2);border-color:rgba(255,200,50,.4)}
+.btn{border:none;border-radius:10px;font-weight:700;cursor:pointer;transition:all .3s;font-family:'Source Sans Pro',sans-serif;width:100%;padding:13px;font-size:14px}
+.btn-on{background:linear-gradient(135deg,#FFC832,#FF9500);color:#0a1628}
+.btn-off{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3);cursor:default}
+.tbtn{padding:8px 14px;border-radius:10px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:5px;outline:none}
+.tbtn.on{background:rgba(255,255,255,.08)}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+
+<!-- ===== INTRO ===== -->
+<div id="S0" class="wrap" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center">
+<div style="animation:fadeIn 1s;max-width:520px">
+<div style="font-size:56px;margin-bottom:12px">🗺️</div>
+<h1 class="serif" style="font-size:clamp(26px,6vw,44px);font-weight:900;background:linear-gradient(135deg,#FFC832,#FF9500,#FFC832);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.15">La Búsqueda del Tesoro</h1>
+<div class="mono" style="font-size:11px;letter-spacing:3px;color:rgba(255,200,50,.5);text-transform:uppercase;margin-top:8px">Parte 1 · El Origen de Chipax</div>
+<p style="font-size:14px;line-height:1.65;color:rgba(255,255,255,.6);margin:16px auto 28px">Exploren el mapa en equipo, descubran las 12 pistas ocultas y aprendan cómo nació Chipax y quiénes son sus integrantes. Cada respuesta correcta vale <span class="gold" style="font-weight:700">100 puntos</span>. Las incorrectas valen 1 punto.</p>
+<div class="mono" style="font-size:10px;color:rgba(255,200,50,.4);letter-spacing:1px;margin-bottom:14px">Selecciona tu equipo:</div>
+<div id="tg" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:24px"></div>
+<button id="go" class="btn btn-off" style="max-width:320px;margin:0 auto;padding:14px 44px;font-size:15px;font-weight:800;border-radius:12px;display:block" disabled>🚀 ¡Comenzar la Búsqueda!</button>
+</div>
+</div>
+
+<!-- ===== GAME ===== -->
+<div id="S1" class="wrap hide" style="max-width:860px;margin:0 auto;padding:14px 14px 36px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-size:22px">🗺️</span>
+<div><div class="serif gold" style="font-size:16px;font-weight:900">El Origen de Chipax</div><div class="mono" style="font-size:9px;color:rgba(255,200,50,.4);letter-spacing:1px">Parte 1 de 4</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:8px">
+<div id="badge"></div>
+<div id="pts" class="mono" style="padding:5px 12px;border-radius:8px;background:rgba(255,200,50,.08);border:1px solid rgba(255,200,50,.2);font-size:13px;font-weight:700;color:#FFC832">0 pts</div>
+</div>
+</div>
+<div class="map-box" id="map"></div>
+<div id="qa" style="margin-top:16px"></div>
+</div>
+
+<!-- ===== VICTORY ===== -->
+<div id="S2" class="wrap hide" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center">
+<div id="vc" style="animation:fadeIn .8s"></div>
+</div>
+
+<script>
+/* ── DATA ── */
+var TM=[
+{id:1,n:"Equipo Alfa",c:"#FF6B35",e:"🔥"},{id:2,n:"Equipo Beta",c:"#00C9A7",e:"⚡"},
+{id:3,n:"Equipo Gamma",c:"#845EC2",e:"🚀"},{id:4,n:"Equipo Delta",c:"#FF6F91",e:"💎"},
+{id:5,n:"Equipo Épsilon",c:"#FFC75F",e:"🌟"},{id:6,n:"Equipo Zeta",c:"#4D8076",e:"🎯"},
+{id:7,n:"Equipo Eta",c:"#D65DB1",e:"🔮"}];
+
+var CL=[
+{id:1,t:"Pista 1: Antes de Chipax — Toni",loc:"Los Inicios",mx:12,my:20,ic:"🚒",q:"Antes de fundar Chipax, Antonio Correa (Toni) tuvo una carrera muy variada. ¿En qué trabajó Toni ANTES de entrar al mundo de la tecnología?",o:["Fue chef en un restaurante en Barcelona","Fue bombero, luego trabajó en energías renovables","Fue profesor de matemáticas en un colegio","Fue piloto comercial en LAN Chile"],a:1,r:"¡Correcto! Toni empezó su carrera como bombero 🚒, después se movió a energías renovables y finalmente llegó al mundo de la tecnología. Tiene un MSc en Innovation and Entrepreneurship de ESADE, Barcelona.",f:"Justo antes de Chipax, Toni vivía en Puerto Tranquilo, en la Patagonia chilena, donde están las Catedrales de Mármol. ¡Del paraíso al caos financiero! 🏔️"},
+{id:2,t:"Pista 2: Antes de Chipax — Francois y Pipe",loc:"Vidas Pasadas",mx:30,my:12,ic:"💼",q:"Francois y Felipe (Pipe) también tenían vidas muy distintas antes de Chipax. ¿Cuál de estas afirmaciones es VERDADERA?",o:["Francois era CEO de una consultora y Pipe era abogado","Francois era CFO de Safecard y Pipe lideró la expansión de una startup proptech por Latinoamérica","Francois trabajaba en Google y Pipe era gerente de un banco","Francois era profesor universitario y Pipe trabajaba en una viña"],a:1,r:"¡Exacto! François era CFO de Safecard, donde vivía en carne propia el dolor de administrar las finanzas. Felipe lideró la expansión de una startup proptech por Colombia, Perú y Paraguay, aumentando ventas un 300% en dos años.",f:"Pipe es surfista empedernido ('más empeño que talento' 🏄), vive en Lisboa. Francois vive en Puerto Varas con 3 hijos, perrita Mila, fanático del kitesurf y los Toyotas 🚙"},
+{id:3,t:"Pista 3: La Empresa en Crisis",loc:"Medularis HQ",mx:20,my:35,ic:"🏢",q:"En mayo de 2015, le piden a Antonio que se haga cargo de una empresa a punto de quebrar. Le quedaban solo 2 meses de caja. ¿Cuál era esa empresa y a qué se dedicaba?",o:["TechnoVida — Software de contabilidad","Medularis — Servicio de click-to-call para empresas","DataPyme — Plataforma de facturación electrónica","SoftChile — Sistema ERP para pymes"],a:1,r:"¡Correcto! Medularis fue fundada por Nico Brenner en 2008 y ofrecía click-to-call. Nico, primo de Antonio y hermano de Joaquín, vivía en California y no podía volver.",f:"Nico Brenner es primo de Antonio y hermano de Joaquín (COO de Chipax). ¡Todo queda en familia! 👨‍👩‍👦‍👦"},
+{id:4,t:"Pista 4: De Planillas al Primer Software",loc:"El Taller",mx:42,my:22,ic:"💻",q:"Toni armó planillas para sanear Medularis, pero cuando delegó, la otra persona las rompió. Crearon una app web. ¿Cómo se llamó esa primera versión de Chipax?",o:["ExcelApp","FinanzasPyme","Webxcel","PlanillaCloud"],a:2,r:"¡Así es! La primera versión se llamó 'Webxcel' — transformar las planillas en una aplicación web.",f:"Cuando François probó Webxcel en Safecard y le funcionó, se dieron cuenta de que tenían algo grande. 🤝"},
+{id:5,t:"Pista 5: El Nombre Secreto",loc:"El Bautizo",mx:60,my:38,ic:"🇨🇱",q:"En junio de 2016 se funda oficialmente la empresa. El nombre es una combinación de dos palabras. ¿Cuáles son?",o:["Chile + Pax (Paz)","Chip + Ax (Hacha)","Chinese + Pax","Chip + Tax"],a:0,r:"¡Exacto! CHIPAX = CHIle + PAX (paz en latín). La misión: darle paz financiera a las pymes.",f:"Imagínate si se hubieran quedado con Webxcel... 'Oye, ¿usas Webxcel?' No suena igual 😄"},
+{id:6,t:"Pista 6: Los Cofundadores",loc:"La Alianza",mx:38,my:55,ic:"🤝",q:"¿Cuál de estas afirmaciones sobre los cofundadores es VERDADERA?",o:["Joaquín es hermano de Antonio y compañero de universidad de François","Joaquín es primo de Antonio, y François es su mejor amigo desde el jardín infantil","Los cuatro cofundadores se conocieron en Y Combinator","Felipe fue el primer cofundador que se sumó al proyecto"],a:1,r:"¡Correcto! Joaquín Brenner (COO) es primo de Antonio y hermano de Nico. François (CTO) es mejor amigo de Antonio desde el jardín infantil. Felipe Urzúa (CRO) se incorporó después.",f:"Toni consiguió $33 millones de amigos y familiares para empezar. A fines de 2016 ya tenían 3 clientes. 💰"},
+{id:7,t:"Pista 7: El Salto al Mundo",loc:"Silicon Valley",mx:78,my:25,ic:"🌎",q:"Chipax creció de 3 clientes (2016) a 450 (2019). Fueron aceptados en la aceleradora más prestigiosa de Silicon Valley. ¿Cuál es?",o:["Techstars","Plug and Play","Y Combinator","Seedcamp"],a:2,r:"¡Bravo! Chipax fue aceptada en Y Combinator, la misma que impulsó a Airbnb, Dropbox y Reddit.",f:"En la pandemia de 2020, las 26 personas del equipo se bajaron el sueldo voluntariamente. 💪"},
+{id:8,t:"Pista 8: ¿Quién es Quién?",loc:"El Equipo",mx:55,my:65,ic:"🎮",q:"Alguien del equipo tiene como hobbies gym, gaming, psicología, maquillaje y conversar. Tiene un perro llamado Rengar. ¿Quién es?",o:["Arian Cejas (Argentina)","Juan Cruz Cardozo (Argentina)","Nicolás Recabarren (Chile)","Tito (Chile)"],a:1,r:"¡Es Juan Cruz (JX)! Vive en Lanús, Argentina. Su perro Rengar lleva el nombre del personaje de League of Legends.",f:"Su comida favorita es 'cualquier cosa sana'. ¡Un developer que come sano! 😄"},
+{id:9,t:"Pista 9: El Fin del Mundo",loc:"El Sur",mx:22,my:72,ic:"🌍",q:"Chipax es 100% remoto y tiene gente en muchos países. ¿Quién vive más al sur de todo el equipo?",o:["Carla Möller (Carlita)","Pablo Terrone (PabloT)","Yordana Aguilar (Yor)","François Gueneau de Mussy (Francois)"],a:2,r:"¡Es Yordana (Yor)! Trabaja desde Punta Arenas, la ciudad más austral de Chile continental.",f:"El equipo va desde Punta Arenas hasta Leipzig (Alemania), pasando por Lisboa, Madrid, Buenos Aires, Lima y un pueblo en Francia 🇫🇷"},
+{id:10,t:"Pista 10: Mascotas Chipax",loc:"El Arca",mx:82,my:58,ic:"🐾",q:"Una persona tiene 5 mascotas: Cachupín, Loki, Woody, Niña y Simba. ¿Quién es?",o:["María Jesús Ibarra (Jesu)","Graciela Cortez (Graci)","Carla Möller (Carlita)","Javiera Ortega (Javi)"],a:1,r:"¡Es Graci! Vive en Cabildo. Sus hobbies: make up, manicure y caminar con sus 'bebés' 🐶.",f:"Jesu tiene 3 perros y ¡2 caballos! (Farah y Zaira 🐴). Carlita tiene 3 perros en Leipzig, Alemania."},
+{id:11,t:"Pista 11: El Cocinero Competitivo",loc:"Lima, Perú",mx:48,my:45,ic:"👨‍🍳",q:"Una persona hace programación competitiva en CodeWars, cocina frituras y hace road trips. ¿Quién es?",o:["Adonai Luque (Perú)","Mirwing Rosales (Chile)","Juan Cruz Cardozo (Argentina)","Alexis Nilo (Chile)"],a:0,r:"¡Es Adonai! Full Stack Developer del squad Batman en Lima. Su meta en CodeWars: llegar a 1kyu.",f:"Comida favorita: hamburguesas, bife con papas fritas y pollo a la brasa. ¡Amante de las frituras! 🍟"},
+{id:12,t:"Pista 12: Hobbies de Abuela",loc:"El Taller Creativo",mx:70,my:78,ic:"🧶",q:"Alguien dice que le gustan 'todos los hobbies de abuela': acuarelas, tejer, bordar, carteras y cerámica (3hrs/semana). ¿Quién es?",o:["Sofi Depetris","María Pilar Bou (Maripi)","Dennise Freymuth","Javiera Gomez"],a:1,r:"¡Es Maripi! Head of Customer Experience. Su comida favorita: 'cualquier cosa que prepare mi abuela ❤️'.",f:"Dennise también es manualera: papelería y técnicas nuevas. Pero los hobbies de abuela son marca registrada de Maripi 🧶"}
+];
+
+/* ── STATE ── */
+var team=null,ci=0,score=0,done=[],pick=null,locked=false;
+
+/* ── INIT ── */
+(function init(){
+  // stars
+  var s=document.getElementById('stars');
+  for(var i=0;i<35;i++){var d=document.createElement('div');d.className='star';d.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;width:'+(Math.random()*2+1)+'px;height:'+(Math.random()*2+1)+'px;animation-delay:'+Math.random()*3+'s';s.appendChild(d)}
+  // team buttons
+  var g=document.getElementById('tg');
+  for(var j=0;j<TM.length;j++){(function(t){
+    var b=document.createElement('button');b.className='tbtn';b.id='tb'+t.id;
+    b.innerHTML='<span style="font-size:14px">'+t.e+'</span>'+t.n;
+    b.onclick=function(){pickTeam(t)};
+    g.appendChild(b);
+  })(TM[j])}
+  // start
+  document.getElementById('go').onclick=startGame;
+})();
+
+function pickTeam(t){
+  team=t;
+  for(var i=0;i<TM.length;i++){
+    var b=document.getElementById('tb'+TM[i].id);
+    var on=TM[i].id===t.id;
+    b.style.borderColor=on?t.c:'rgba(255,255,255,.08)';
+    b.style.color=on?t.c:'rgba(255,255,255,.5)';
+    b.style.background=on?t.c+'15':'rgba(255,255,255,.03)';
+    b.className='tbtn'+(on?' on':'');
+  }
+  var gb=document.getElementById('go');gb.disabled=false;gb.className='btn btn-on';gb.style.maxWidth='320px';
+}
+
+function startGame(){
+  if(!team)return;
+  document.getElementById('S0').classList.add('hide');
+  document.getElementById('S1').classList.remove('hide');
+  var bd=document.getElementById('badge');
+  bd.style.cssText='padding:5px 12px;border-radius:8px;background:'+team.c+'15;border:1px solid '+team.c+'40;display:flex;align-items:center;gap:5px';
+  bd.innerHTML='<span style="font-size:14px">'+team.e+'</span><span style="font-size:12px;font-weight:600;color:'+team.c+'">'+team.n+'</span>';
+  ci=0;score=0;done=[];drawMap();drawQ();
+}
+
+/* ── MAP ── */
+function drawMap(){
+  var m=document.getElementById('map'),h='';
+  // grid
+  h+='<svg style="inset:0;width:100%;height:100%;opacity:.06">';
+  for(var i=1;i<=10;i++)h+='<line x1="0" y1="'+i*10+'%" x2="100%" y2="'+i*10+'%" stroke="#FFC832" stroke-width=".5"/><line x1="'+i*10+'%" y1="0" x2="'+i*10+'%" y2="100%" stroke="#FFC832" stroke-width=".5"/>';
+  h+='</svg>';
+  // lines
+  h+='<svg style="inset:0;width:100%;height:100%;opacity:.3">';
+  for(var i=0;i<CL.length-1;i++){var a=CL[i],b=CL[i+1],rv=done.indexOf(a.id)>=0&&done.indexOf(b.id)>=0;
+    h+='<line x1="'+a.mx+'%" y1="'+a.my+'%" x2="'+b.mx+'%" y2="'+b.my+'%" stroke="'+(rv?'#FFC832':'#334155')+'" stroke-width="2" stroke-dasharray="'+(rv?'none':'6 6')+'"/>';}
+  h+='</svg>';
+  // ref
+  var refs=[{x:10,y:10,l:'Santiago 2015'},{x:87,y:10,l:'Silicon Valley'},{x:50,y:85,l:'Puerto Tranquilo'},{x:90,y:72,l:'California'}];
+  for(var i=0;i<refs.length;i++){var r=refs[i];h+='<div style="left:'+r.x+'%;top:'+r.y+'%;transform:translate(-50%,-50%);font-size:9px;color:rgba(255,255,255,.18);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px;text-transform:uppercase;white-space:nowrap">◇ '+r.l+'</div>';}
+  // markers
+  for(var i=0;i<CL.length;i++){var c=CL[i],ul=done.indexOf(c.id)>=0,nx=!ul&&(c.id===1||done.indexOf(c.id-1)>=0),cur=ci===i&&!ul;
+    var cls='marker'+(ul?' on':'')+(nx?' next':'')+(cur?' cur':'');
+    h+='<button class="'+cls+'" style="left:'+c.mx+'%;top:'+c.my+'%" onclick="'+(nx||ul?'go2('+i+')':'void(0)')+'">'+(ul?c.ic:nx?'❓':'🔒')+'</button>';
+    h+='<div class="mlabel" style="left:'+c.mx+'%;top:'+(c.my+5.5)+'%;color:'+(ul?'#FFC832':'rgba(255,255,255,.22)')+'">'+(ul?c.loc:'Pista '+c.id)+'</div>';}
+  // overlay
+  h+='<div style="top:10px;left:14px;display:flex;align-items:center;gap:6px"><span style="font-size:18px">🗺️</span><span class="mono" style="font-size:10px;color:rgba(255,200,50,.45);letter-spacing:2px;text-transform:uppercase">Mapa del Origen</span></div>';
+  h+='<div class="mono" style="bottom:10px;right:14px;font-size:10px;color:rgba(255,200,50,.35)">'+done.length+'/'+CL.length+' descubiertas</div>';
+  m.innerHTML=h;
+}
+function go2(i){ci=i;pick=null;locked=false;drawMap();drawQ();}
+
+/* ── QUESTION ── */
+function drawQ(){
+  var area=document.getElementById('qa'),c=CL[ci];
+  var nx=done.indexOf(c.id)<0&&(c.id===1||done.indexOf(c.id-1)>=0);
+  if(!nx){area.innerHTML='<div class="card" style="text-align:center;animation:slideUp .5s"><span style="font-size:36px">👆</span><p style="color:rgba(255,255,255,.5);font-size:14px;margin-top:10px">Haz clic en la pista parpadeante del mapa</p></div>';return;}
+  pick=null;locked=false;
+  var h='<div class="card" style="animation:slideUp .5s">';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:26px">'+c.ic+'</span><div><div class="serif gold" style="font-size:18px;font-weight:700;line-height:1.2">'+c.t+'</div><div class="mono" style="font-size:9px;color:rgba(255,200,50,.4);letter-spacing:2px;text-transform:uppercase;margin-top:2px">📍 '+c.loc+'</div></div></div>';
+  h+='<p style="font-size:14px;line-height:1.65;color:rgba(255,255,255,.85);margin:16px 0">'+c.q+'</p>';
+  h+='<div id="opts" style="display:flex;flex-direction:column;gap:8px">';
+  for(var i=0;i<c.o.length;i++){h+='<button class="opt" id="o'+i+'" onclick="selOpt('+i+')"><span class="cir">'+String.fromCharCode(65+i)+'</span>'+c.o[i]+'</button>';}
+  h+='</div>';
+  h+='<button class="btn btn-off" id="sub" style="margin-top:18px" onclick="submit()" disabled>🔓 Desbloquear Pista</button>';
+  h+='</div>';
+  area.innerHTML=h;
+}
+
+function selOpt(i){
+  if(locked)return;pick=i;
+  var c=CL[ci];
+  for(var j=0;j<c.o.length;j++){var b=document.getElementById('o'+j);b.className='opt'+(j===i?' sel':'');}
+  var s=document.getElementById('sub');s.disabled=false;s.className='btn btn-on';
+}
+
+function submit(){
+  if(pick===null||locked)return;locked=true;
+  var c=CL[ci],ok=pick===c.a,p=ok?100:1;score+=p;
+  document.getElementById('pts').textContent=score+' pts';
+  // mark options
+  for(var j=0;j<c.o.length;j++){var b=document.getElementById('o'+j);b.onclick=null;
+    if(j===c.a)b.className='opt ok done';
+    else if(j===pick&&!ok)b.className='opt no done';
+    else b.className='opt done';}
+  // remove submit, add result
+  document.getElementById('sub').remove();
+  var qa=document.querySelector('#qa .card');
+  var h='<div style="margin-top:18px;padding:18px;border-radius:12px;animation:slideUp .4s;background:'+(ok?'rgba(34,197,94,.08)':'rgba(239,68,68,.08)')+';border:1px solid '+(ok?'rgba(34,197,94,.2)':'rgba(239,68,68,.2)')+'">';
+  h+='<div style="font-size:15px;font-weight:700;color:'+(ok?'#22c55e':'#ef4444')+';margin-bottom:8px">'+(ok?'✅ ¡Correcto! +100 pts':'❌ No exactamente... +1 pt')+'</div>';
+  h+='<p style="font-size:13px;line-height:1.6;color:rgba(255,255,255,.75);margin:0">'+c.r+'</p>';
+  h+='<div style="margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(255,200,50,.06);border:1px solid rgba(255,200,50,.15)"><div class="mono" style="font-size:10px;color:#FFC832;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">💡 Dato curioso</div><p style="font-size:12px;color:rgba(255,255,255,.65);margin:0;line-height:1.5">'+c.f+'</p></div>';
+  h+='<button class="btn btn-on" style="margin-top:14px" onclick="nxt()">'+(ci<CL.length-1?'Siguiente pista →':'🏆 Ver resultados')+'</button>';
+  h+='</div>';
+  qa.insertAdjacentHTML('beforeend',h);
+}
+
+function nxt(){
+  done.push(CL[ci].id);
+  if(ci>=CL.length-1){victory();return;}
+  ci++;pick=null;locked=false;drawMap();drawQ();
+}
+
+/* ── VICTORY ── */
+function victory(){
+  document.getElementById('S1').classList.add('hide');
+  document.getElementById('S2').classList.remove('hide');
+  var pct=Math.round(score/(CL.length*100)*100);
+  var msg=pct===100?'¡Perfecto! Conocen la historia de Chipax al derecho y al revés.':pct>=60?'¡Gran trabajo! Ya saben bastante sobre los orígenes de Chipax.':'¡Buen intento! Ahora conocen mucho más sobre cómo nació Chipax.';
+  var h='<div style="font-size:72px;margin-bottom:14px">🏆</div>';
+  h+='<h1 class="serif gold" style="font-size:clamp(22px,5vw,36px);font-weight:900;margin:0 0 6px">¡Misión Completada!</h1>';
+  h+='<div style="font-size:16px;margin-bottom:18px">'+team.e+' '+team.n+'</div>';
+  h+='<div class="card" style="max-width:400px;width:100%;margin:0 auto;padding:28px">';
+  h+='<div class="mono" style="font-size:44px;font-weight:900;color:#FFC832">'+score+'</div>';
+  h+='<div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:18px">puntos de '+(CL.length*100)+'</div>';
+  h+='<div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:18px">';
+  for(var i=0;i<CL.length;i++){var g=i<Math.round(score/100);h+='<div style="width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;background:'+(g?'rgba(34,197,94,.2)':'rgba(239,68,68,.1)')+';border:1px solid '+(g?'rgba(34,197,94,.4)':'rgba(239,68,68,.2)')+'">'+(g?'✅':'❌')+'</div>';}
+  h+='</div>';
+  h+='<p style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;margin:0 0 16px">'+msg+'</p>';
+  h+='<div style="padding:14px;border-radius:10px;background:rgba(255,200,50,.06);border:1px solid rgba(255,200,50,.12);text-align:center"><div class="mono" style="font-size:10px;color:rgba(255,200,50,.5);letter-spacing:1px;margin-bottom:6px">📸 ENVÍA CAPTURA DE ESTA PANTALLA</div><div class="mono gold" style="font-size:24px;font-weight:900">'+team.e+' '+score+' pts</div></div>';
+  h+='</div>';
+  h+='<div class="mono" style="margin-top:20px;font-size:10px;color:rgba(255,200,50,.3);letter-spacing:2px">Continuará en la Parte 2...</div>';
+  document.getElementById('vc').innerHTML=h;
+}
+</script>
+</body>
+</html>
